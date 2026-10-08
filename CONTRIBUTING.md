@@ -14,8 +14,8 @@ Thank you for your interest in contributing to the **MarzPay SDK**! We welcome b
 
 1. **Fork and clone the repository:**
    ```bash
-   git clone https://github.com/<your-username>/marzpay-node-sdk.git
-   cd marzpay-node-sdk
+   git clone https://github.com/<your-username>/marzpay.git
+   cd marzpay
    ```
 
 2. **Install dependencies:**

@@ -55,12 +55,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/marzpay/marzpay-node-sdk.git"
+    "url": "git+https://github.com/codrone/marzpay.git"
   },
   "bugs": {
-    "url": "https://github.com/marzpay/marzpay-node-sdk/issues"
+    "url": "https://github.com/codrone/marzpay/issues"
   },
-  "homepage": "https://wallet.wearemarz.com/documentation",
+  "homepage": "https://codrone.github.io/marzpay/",
   "engines": {
     "node": ">=18.0.0"
   },

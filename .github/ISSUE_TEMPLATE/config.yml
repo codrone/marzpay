@@ -3,9 +3,12 @@ contact_links:
   - name: SDK Support & Contact
     url: mailto:mpalaronald@gmail.com
     about: Send general SDK inquiries or direct communications.
-  - name: MarzPay Developer Documentation
+  - name: TypeDoc API Reference
+    url: https://codrone.github.io/marzpay/
+    about: Official TypeScript & JavaScript SDK API Reference.
+  - name: MarzPay REST API Documentation
     url: https://wallet.wearemarz.com/documentation
-    about: Official API documentation for MarzPay payment services.
+    about: Official MarzPay payment gateway API documentation.
   - name: Security Vulnerabilities
-    url: https://github.com/marzpay/marzpay-node-sdk/blob/main/SECURITY.md
+    url: https://github.com/codrone/marzpay/blob/main/SECURITY.md
     about: Report security issues privately via security policy.

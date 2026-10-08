@@ -1,6 +1,6 @@
 # MarzPay SDK for TypeScript & Node.js
 
-[![CI](https://github.com/marzpay/marzpay-node-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/marzpay/marzpay-node-sdk/actions/workflows/ci.yml)
+[![CI](https://github.com/codrone/marzpay/actions/workflows/ci.yml/badge.svg)](https://github.com/codrone/marzpay/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/marzpay.svg)](https://www.npmjs.com/package/marzpay)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue.svg)](https://www.typescriptlang.org/)
