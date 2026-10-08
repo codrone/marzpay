@@ -73,7 +73,7 @@ async function computeHmacSha256Hex(data: string, secret: string): Promise<strin
 
   // Node.js fallback if Web Crypto is unavailable
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const crypto = require('crypto');
     return crypto.createHmac('sha256', secret).update(data).digest('hex');
   } catch {
