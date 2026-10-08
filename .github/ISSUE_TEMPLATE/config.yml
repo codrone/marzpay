@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: SDK Support & Contact
+    url: mailto:mpalaronald@gmail.com
+    about: Send general SDK inquiries or direct communications.
+  - name: MarzPay Developer Documentation
+    url: https://wallet.wearemarz.com/documentation
+    about: Official API documentation for MarzPay payment services.
+  - name: Security Vulnerabilities
+    url: https://github.com/marzpay/marzpay-node-sdk/blob/main/SECURITY.md
+    about: Report security issues privately via security policy.

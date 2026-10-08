@@ -1,0 +1,90 @@
+{
+  "name": "marzpay",
+  "version": "1.0.0",
+  "description": "Typesafe JavaScript & TypeScript SDK for MarzPay API v1 (Mobile Money, Cards, Disbursements, Bank Transfers, Utility Bills, Airtime & Webhooks)",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "docs": "typedoc --out docs src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/ tests/",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "check:exports": "publint",
+    "prepare": "husky",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "prepublishOnly": "npm run build && npm run typecheck && npm run test"
+  },
+  "keywords": [
+    "marzpay",
+    "mobile-money",
+    "uganda",
+    "kenya",
+    "rwanda",
+    "drc",
+    "zambia",
+    "cameroon",
+    "payments",
+    "disbursements",
+    "mpesa",
+    "mtn",
+    "airtel",
+    "sdk",
+    "typescript"
+  ],
+  "author": "Codrone <mpalaronald@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marzpay/marzpay-node-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/marzpay/marzpay-node-sdk/issues"
+  },
+  "homepage": "https://wallet.wearemarz.com/documentation",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@changesets/cli": "^2.27.1",
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^6.20.0",
+    "@typescript-eslint/parser": "^6.20.0",
+    "@vitest/coverage-v8": "^1.3.1",
+    "eslint": "^8.56.0",
+    "husky": "^9.0.10",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.4",
+    "publint": "^0.2.7",
+    "tsup": "^8.0.2",
+    "typedoc": "^0.25.12",
+    "typescript": "^5.3.3",
+    "vitest": "^1.3.1"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}
