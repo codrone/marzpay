@@ -23,7 +23,11 @@ export class HttpClient {
       (typeof process !== 'undefined' ? process.env.MARZPAY_API_BASE : '') ||
       DEFAULT_BASE_URL;
 
-    this.baseUrl = baseUrl.replace(/\/+$/, '');
+    let cleanedBaseUrl = baseUrl;
+    while (cleanedBaseUrl.endsWith('/')) {
+      cleanedBaseUrl = cleanedBaseUrl.slice(0, -1);
+    }
+    this.baseUrl = cleanedBaseUrl;
     this.apiKey = apiKey || '';
     this.apiSecret = apiSecret || '';
     this.timeoutMs = config.timeoutMs || DEFAULT_TIMEOUT_MS;
