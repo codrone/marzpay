@@ -58,6 +58,9 @@
   ],
   "author": "Codrone <mpalaronald@gmail.com>",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codrone/marzpay.git"
