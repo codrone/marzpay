@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2
+
+### Patch Changes
+
+- 41a97d9: migrate ESLint configuration to flat
+- 4820c12: omit dev dependencies in security audit and improve base URL trailing slash removal
+
 All notable changes to the `marzpay` SDK will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
