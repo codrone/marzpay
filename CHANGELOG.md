@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3
+
+### Patch Changes
+
+- f3d31e5: testing auto deolploy version bump
+
 ## 1.0.2
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "marzpay",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Typesafe JavaScript & TypeScript SDK for MarzPay API v1 (Mobile Money, Cards, Disbursements, Bank Transfers, Utility Bills, Airtime & Webhooks)",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
