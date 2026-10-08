@@ -29,7 +29,7 @@
     "lint": "eslint src/ tests/",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "check:exports": "publint",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "changeset": "changeset",
     "version": "changeset version",
     "prepublishOnly": "npm run build && npm run typecheck && npm run test"
