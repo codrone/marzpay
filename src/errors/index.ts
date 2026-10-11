@@ -17,13 +17,15 @@ export class MarzPayAPIError extends MarzPayError {
   public readonly errorCode?: string;
   public readonly errors?: Record<string, string[]>;
   public readonly rawResponse?: unknown;
+  public readonly retryAfter?: number;
 
   constructor(
     message: string,
     statusCode: number,
     errorCode?: string,
     errors?: Record<string, string[]>,
-    rawResponse?: unknown
+    rawResponse?: unknown,
+    retryAfter?: number
   ) {
     super(message);
     this.name = 'MarzPayAPIError';
@@ -31,6 +33,17 @@ export class MarzPayAPIError extends MarzPayError {
     this.errorCode = errorCode;
     this.errors = errors;
     this.rawResponse = rawResponse;
+    this.retryAfter = retryAfter;
+  }
+}
+
+/**
+  Error thrown when API rate limit is exceeded (HTTP 429)
+ */
+export class MarzPayRateLimitError extends MarzPayAPIError {
+  constructor(message: string, statusCode = 429, retryAfter?: number, rawResponse?: unknown) {
+    super(message, statusCode, 'RATE_LIMIT_EXCEEDED', undefined, rawResponse, retryAfter);
+    this.name = 'MarzPayRateLimitError';
   }
 }
 

@@ -4,3 +4,4 @@ export * from './errors';
 export * from './types';
 export * from './services';
 export { verifyWebhookSignature } from './utils/crypto';
+export { sanitizePhoneNumber } from './utils/phone';

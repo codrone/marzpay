@@ -28,7 +28,8 @@ describe('MarzPay Client', () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      text: async () => JSON.stringify({ status: 'success', data: { account: { balance: { raw: 1000 } } } }),
+      text: async () =>
+        JSON.stringify({ status: 'success', data: { account: { balance: { raw: 1000 } } } }),
     });
 
     const client = new MarzPay({
@@ -91,5 +92,31 @@ describe('MarzPay Client', () => {
       expect(err.statusCode).toBe(422);
       expect(err.errors.amount).toContain('The amount field is required.');
     }
+  });
+
+  it('should trigger custom logger callbacks when provided', async () => {
+    const mockLogger = {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+    };
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ status: 'success', data: {} }),
+    });
+
+    const client = new MarzPay({
+      apiKey: 'key',
+      apiSecret: 'secret',
+      logger: mockLogger,
+      fetch: mockFetch as any,
+    });
+
+    await client.balance.get();
+
+    expect(mockLogger.debug).toHaveBeenCalled();
   });
 });

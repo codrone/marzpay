@@ -11,7 +11,8 @@ export async function verifyWebhookSignature(
   rawBody: string,
   signatureHeader: string | null | undefined,
   secret: string,
-  timestampHeader?: string | null
+  timestampHeader?: string | null,
+  toleranceInSeconds: number = 300
 ): Promise<boolean> {
   if (!signatureHeader || !secret) {
     return false;
@@ -37,6 +38,17 @@ export async function verifyWebhookSignature(
 
   if (!v1Hash) {
     return false;
+  }
+
+  // Validate timestamp tolerance to prevent replay attacks
+  if (timestamp && toleranceInSeconds > 0) {
+    const timestampSec = Number(timestamp);
+    if (!isNaN(timestampSec)) {
+      const nowSec = Math.floor(Date.now() / 1000);
+      if (Math.abs(nowSec - timestampSec) > toleranceInSeconds) {
+        return false;
+      }
+    }
   }
 
   const payloadToSign = timestamp ? `${timestamp}.${rawBody}` : rawBody;
@@ -90,4 +102,17 @@ function timingSafeEqual(a: string, b: string): boolean {
     result |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
   return result === 0;
+}
+
+/**
+  Generate a unique Idempotency-Key UUID string.
+ */
+export function generateIdempotencyKey(): string {
+  if (
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.randomUUID === 'function'
+  ) {
+    return globalThis.crypto.randomUUID();
+  }
+  return 'idemp_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
 }

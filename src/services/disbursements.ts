@@ -1,6 +1,8 @@
 import { HttpClient } from '../utils/http';
+import { sanitizePhoneNumber } from '../utils/phone';
 import {
   APIResponseEnvelope,
+  RequestOptions,
   SendMoneyData,
   SendMoneyParams,
   SendMoneyServicesData,
@@ -13,11 +15,23 @@ export class DisbursementsService {
     Send funds (disbursement / payout) to a recipient mobile money wallet.
     
     @param params Disbursement request parameters
+    @param options Optional per-request options (e.g. idempotencyKey, custom headers)
     @returns Created payout details with fee deductions and updated wallet balance
    */
-  public async send(params: SendMoneyParams): Promise<APIResponseEnvelope<SendMoneyData>> {
+  public async send(
+    params: SendMoneyParams,
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<SendMoneyData>> {
+    const payload = {
+      ...params,
+      phone_number: params.phone_number
+        ? sanitizePhoneNumber(params.phone_number)
+        : params.phone_number,
+    };
     return this.http.request<SendMoneyData>('POST', '/send-money', {
-      body: params,
+      body: payload,
+      headers: options?.headers,
+      idempotencyKey: options?.idempotencyKey,
     });
   }
 

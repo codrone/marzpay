@@ -5,6 +5,7 @@ import {
   ListPaymentLinksParams,
   PaymentLinkData,
   PaymentLinkRecord,
+  RequestOptions,
 } from '../types';
 
 export class PaymentLinksService {
@@ -12,12 +13,25 @@ export class PaymentLinksService {
 
   /**
     Create hosted payment link.
+    
+    @example
+    ```typescript
+    const link = await marzpay.paymentLinks.create({
+      title: 'Invoice Payment #102',
+      amount: 50000,
+      currency: 'UGX',
+      country: 'UG'
+    }, { idempotencyKey: 'idemp-link-102' });
+    ```
    */
   public async create(
-    params: CreatePaymentLinkParams
+    params: CreatePaymentLinkParams,
+    options?: RequestOptions
   ): Promise<APIResponseEnvelope<PaymentLinkData>> {
     return this.http.request<PaymentLinkData>('POST', '/payment-links', {
       body: params,
+      headers: options?.headers,
+      idempotencyKey: options?.idempotencyKey,
     });
   }
 
@@ -25,7 +39,8 @@ export class PaymentLinksService {
     List payment links.
    */
   public async list(
-    params: ListPaymentLinksParams = {}
+    params: ListPaymentLinksParams = {},
+    options?: RequestOptions
   ): Promise<APIResponseEnvelope<{ payment_links: PaymentLinkRecord[] }>> {
     return this.http.request<{ payment_links: PaymentLinkRecord[] }>('GET', '/payment-links', {
       params: {
@@ -34,14 +49,20 @@ export class PaymentLinksService {
         page: params.page,
         per_page: params.per_page,
       },
+      headers: options?.headers,
     });
   }
 
   /**
     Get payment link details by UUID.
    */
-  public async get(uuid: string): Promise<APIResponseEnvelope<PaymentLinkData>> {
-    return this.http.request<PaymentLinkData>('GET', `/payment-links/${uuid}`);
+  public async get(
+    uuid: string,
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<PaymentLinkData>> {
+    return this.http.request<PaymentLinkData>('GET', `/payment-links/${uuid}`, {
+      headers: options?.headers,
+    });
   }
 
   /**
@@ -49,17 +70,25 @@ export class PaymentLinksService {
    */
   public async update(
     uuid: string,
-    params: Partial<CreatePaymentLinkParams>
+    params: Partial<CreatePaymentLinkParams>,
+    options?: RequestOptions
   ): Promise<APIResponseEnvelope<PaymentLinkData>> {
     return this.http.request<PaymentLinkData>('PUT', `/payment-links/${uuid}`, {
       body: params,
+      headers: options?.headers,
+      idempotencyKey: options?.idempotencyKey,
     });
   }
 
   /**
     Delete payment link by UUID.
    */
-  public async delete(uuid: string): Promise<APIResponseEnvelope<{ message: string }>> {
-    return this.http.request<{ message: string }>('DELETE', `/payment-links/${uuid}`);
+  public async delete(
+    uuid: string,
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<{ message: string }>> {
+    return this.http.request<{ message: string }>('DELETE', `/payment-links/${uuid}`, {
+      headers: options?.headers,
+    });
   }
 }

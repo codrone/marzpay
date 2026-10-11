@@ -18,16 +18,7 @@ export type CountryCode =
 /**
   Supported currency ISO codes
  */
-export type CurrencyCode =
-  | 'UGX'
-  | 'KES'
-  | 'RWF'
-  | 'ZMW'
-  | 'XAF'
-  | 'XOF'
-  | 'SLE'
-  | 'CDF'
-  | 'USD';
+export type CurrencyCode = 'UGX' | 'KES' | 'RWF' | 'ZMW' | 'XAF' | 'XOF' | 'SLE' | 'CDF' | 'USD';
 
 /**
   Wallet source identifier
@@ -63,6 +54,21 @@ export interface APIResponseEnvelope<T = Record<string, unknown>> {
   data: T;
   error_code?: string;
   errors?: Record<string, string[]>;
+}
+
+/**
+  Per-request options (Idempotency Key, custom headers)
+ */
+export interface RequestOptions {
+  /**
+    Optional Idempotency-Key header for double-charge prevention on retries.
+   */
+  idempotencyKey?: string;
+
+  /**
+    Custom HTTP headers for this request.
+   */
+  headers?: Record<string, string>;
 }
 
 /**

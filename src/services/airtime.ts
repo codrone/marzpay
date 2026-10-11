@@ -1,9 +1,11 @@
 import { HttpClient } from '../utils/http';
+import { sanitizePhoneNumber } from '../utils/phone';
 import {
   APIResponseEnvelope,
   AirtimeCatalogData,
   AirtimePurchaseData,
   AirtimePurchaseParams,
+  RequestOptions,
 } from '../types';
 
 export class AirtimeService {
@@ -12,9 +14,13 @@ export class AirtimeService {
   /**
     Retrieve available data bundle catalog by network.
    */
-  public async getCatalog(network?: string): Promise<APIResponseEnvelope<AirtimeCatalogData>> {
+  public async getCatalog(
+    network?: string,
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<AirtimeCatalogData>> {
     return this.http.request<AirtimeCatalogData>('GET', '/airtime-data/catalog', {
       params: { network },
+      headers: options?.headers,
     });
   }
 
@@ -22,28 +28,59 @@ export class AirtimeService {
     Detect mobile network operator from MSISDN phone number.
    */
   public async detectNetwork(
-    msisdn: string
+    msisdn: string,
+    options?: RequestOptions
   ): Promise<APIResponseEnvelope<{ network: string; msisdn: string }>> {
-    return this.http.request<{ network: string; msisdn: string }>('GET', '/airtime-data/detect-network', {
-      params: { msisdn },
-    });
+    const cleanPhone = sanitizePhoneNumber(msisdn);
+    return this.http.request<{ network: string; msisdn: string }>(
+      'GET',
+      '/airtime-data/detect-network',
+      {
+        params: { msisdn: cleanPhone },
+        headers: options?.headers,
+      }
+    );
   }
 
   /**
     Purchase airtime or data bundles for MTN, Airtel, or Lyca.
+    
+    @example
+    ```typescript
+    const topup = await marzpay.airtime.purchase({
+      phone_number: '+256777123456',
+      amount: 5000,
+      network: 'mtn',
+      type: 'airtime',
+      country: 'UG',
+      reference: 'ref-airtime-001'
+    }, { idempotencyKey: 'idemp-airtime-001' });
+    ```
    */
   public async purchase(
-    params: AirtimePurchaseParams
+    params: AirtimePurchaseParams,
+    options?: RequestOptions
   ): Promise<APIResponseEnvelope<AirtimePurchaseData>> {
+    const payload = {
+      ...params,
+      msisdn: params.msisdn ? sanitizePhoneNumber(params.msisdn) : params.msisdn,
+    };
     return this.http.request<AirtimePurchaseData>('POST', '/airtime-data', {
-      body: params,
+      body: payload,
+      headers: options?.headers,
+      idempotencyKey: options?.idempotencyKey,
     });
   }
 
   /**
     Check status of airtime/data purchase transaction by reference UUID.
    */
-  public async getStatus(reference: string): Promise<APIResponseEnvelope<AirtimePurchaseData>> {
-    return this.http.request<AirtimePurchaseData>('GET', `/airtime-data/${reference}`);
+  public async getStatus(
+    reference: string,
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<AirtimePurchaseData>> {
+    return this.http.request<AirtimePurchaseData>('GET', `/airtime-data/${reference}`, {
+      headers: options?.headers,
+    });
   }
 }

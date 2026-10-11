@@ -72,7 +72,8 @@ export class WebhooksService {
     rawBody: string,
     signatureHeader: string | null | undefined,
     secret?: string,
-    timestampHeader?: string | null
+    timestampHeader?: string | null,
+    toleranceInSeconds: number = 300
   ): Promise<boolean> {
     const signingSecret = secret || this.defaultWebhookSecret;
     if (!signingSecret) {
@@ -80,7 +81,13 @@ export class WebhooksService {
         'Webhook secret is required to verify signature. Pass secret parameter or set MARZPAY_WEBHOOK_SECRET in configuration.'
       );
     }
-    return verifyWebhookSignature(rawBody, signatureHeader, signingSecret, timestampHeader);
+    return verifyWebhookSignature(
+      rawBody,
+      signatureHeader,
+      signingSecret,
+      timestampHeader,
+      toleranceInSeconds
+    );
   }
 
   /**
@@ -104,7 +111,12 @@ export class WebhooksService {
     }
 
     // Check if wrapped in Dashboard Webhook envelope ({ event_type, webhook_id, data: { ... } })
-    if ('webhook_id' in body && 'data' in body && typeof body.data === 'object' && body.data !== null) {
+    if (
+      'webhook_id' in body &&
+      'data' in body &&
+      typeof body.data === 'object' &&
+      body.data !== null
+    ) {
       const wrapper = body as DashboardWebhookWrapper;
       const innerEvent = wrapper.data as DirectCallbackEvent;
 
@@ -121,5 +133,47 @@ export class WebhooksService {
       ...(body as DirectCallbackEvent),
       is_dashboard_wrapper: false,
     };
+  }
+
+  /**
+    Construct and verify a webhook event from a raw body string and signature header.
+    Validates HMAC signature and timestamp tolerance before returning the strongly-typed event.
+    
+    @param rawBody Raw JSON string body from request
+    @param signatureHeader Value of 'x-marzpay-signature' (or 'x-signature') header
+    @param secret Optional override secret key (defaults to config webhookSecret)
+    @param toleranceInSeconds Max timestamp drift tolerance (default 300s / 5 minutes)
+    
+    @example
+    ```typescript
+    const event = await marzpay.webhooks.constructEvent(
+      req.rawBody,
+      req.headers['x-marzpay-signature']
+    );
+    console.log('Received verified webhook:', event.event_type);
+    ```
+   */
+  public async constructEvent(
+    rawBody: string,
+    signatureHeader: string | null | undefined,
+    secret?: string,
+    toleranceInSeconds: number = 300
+  ): Promise<ParsedWebhookEvent> {
+    if (typeof rawBody !== 'string') {
+      throw new Error(
+        'Webhook payload must be a raw JSON string. If using Express, Next.js, or Fastify, ensure you pass unparsed body text.'
+      );
+    }
+    const isValid = await this.verifySignature(
+      rawBody,
+      signatureHeader,
+      secret,
+      undefined,
+      toleranceInSeconds
+    );
+    if (!isValid) {
+      throw new Error('Invalid MarzPay webhook HMAC signature or stale timestamp');
+    }
+    return this.parseEvent(rawBody);
   }
 }

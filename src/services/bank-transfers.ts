@@ -3,6 +3,7 @@ import {
   APIResponseEnvelope,
   BankTransferData,
   CreateBankTransferParams,
+  RequestOptions,
   SupportedBanksData,
   ValidateBankAccountData,
   ValidateBankAccountParams,
@@ -13,37 +14,72 @@ export class BankTransfersService {
 
   /**
     Validate bank account number and retrieve account holder name before sending funds.
+    
+    @example
+    ```typescript
+    const account = await marzpay.bankTransfers.validate({
+      account_number: '0123456789',
+      bank_code: 'EQTY',
+      country: 'UG'
+    });
+    ```
    */
   public async validate(
-    params: ValidateBankAccountParams
+    params: ValidateBankAccountParams,
+    options?: RequestOptions
   ): Promise<APIResponseEnvelope<ValidateBankAccountData>> {
     return this.http.request<ValidateBankAccountData>('POST', '/bank-transfer/validate', {
       body: params,
+      headers: options?.headers,
+      idempotencyKey: options?.idempotencyKey,
     });
   }
 
   /**
     Create and submit a bank transfer from merchant wallet to bank account.
+    
+    @example
+    ```typescript
+    const transfer = await marzpay.bankTransfers.create({
+      account_number: '0123456789',
+      bank_code: 'EQTY',
+      amount: 150000,
+      country: 'UG',
+      reference: 'ref-bank-001'
+    }, { idempotencyKey: 'idemp-bank-001' });
+    ```
    */
   public async create(
-    params: CreateBankTransferParams
+    params: CreateBankTransferParams,
+    options?: RequestOptions
   ): Promise<APIResponseEnvelope<BankTransferData>> {
     return this.http.request<BankTransferData>('POST', '/bank-transfer', {
       body: params,
+      headers: options?.headers,
+      idempotencyKey: options?.idempotencyKey,
     });
   }
 
   /**
-    Get list of supported commercial banks.
+    Get list of supported commercial banks by country.
    */
-  public async listBanks(): Promise<APIResponseEnvelope<SupportedBanksData>> {
-    return this.http.request<SupportedBanksData>('GET', '/bank-transfer/banks');
+  public async listBanks(
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<SupportedBanksData>> {
+    return this.http.request<SupportedBanksData>('GET', '/bank-transfer/banks', {
+      headers: options?.headers,
+    });
   }
 
   /**
     Check bank transfer status by transaction reference or UUID.
    */
-  public async getStatus(reference: string): Promise<APIResponseEnvelope<BankTransferData>> {
-    return this.http.request<BankTransferData>('GET', `/bank-transfer/${reference}`);
+  public async getStatus(
+    reference: string,
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<BankTransferData>> {
+    return this.http.request<BankTransferData>('GET', `/bank-transfer/${reference}`, {
+      headers: options?.headers,
+    });
   }
 }

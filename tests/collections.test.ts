@@ -87,4 +87,28 @@ describe('CollectionsService', () => {
       'https://wallet.wearemarz.com/pay/card-gateway?reference=b59d3d6d'
     );
   });
+
+  it('should attach custom Idempotency-Key header when provided', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ status: 'success', data: {} }),
+    });
+
+    const client = new MarzPay({ apiKey: 'k', apiSecret: 's', fetch: mockFetch as any });
+
+    await client.collections.create(
+      {
+        amount: 5000,
+        phone_number: '0777123456',
+        reference: 'ref-idemp-123',
+        country: 'UG',
+      },
+      { idempotencyKey: 'custom_idempotency_key_xyz' }
+    );
+
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const headers = init.headers as Record<string, string>;
+    expect(headers['Idempotency-Key']).toBe('custom_idempotency_key_xyz');
+  });
 });

@@ -18,20 +18,34 @@ describe('WebhooksService & HMAC Signature', () => {
   });
 
   it('should verify valid HMAC signature', async () => {
-    const timestamp = '1700000000';
+    const timestamp = Math.floor(Date.now() / 1000).toString();
     const payloadToSign = `${timestamp}.${rawBody}`;
 
     // Compute expected HMAC sha256 hex
     const crypto = await import('crypto');
     const signature = crypto.createHmac('sha256', secret).update(payloadToSign).digest('hex');
 
-    const isValid = await verifyWebhookSignature(
-      rawBody,
-      `t=${timestamp},v1=${signature}`,
-      secret
-    );
+    const isValid = await verifyWebhookSignature(rawBody, `t=${timestamp},v1=${signature}`, secret);
 
     expect(isValid).toBe(true);
+  });
+
+  it('should reject stale timestamp replay attacks', async () => {
+    const staleTimestamp = '1700000000'; // Stale timestamp
+    const payloadToSign = `${staleTimestamp}.${rawBody}`;
+
+    const crypto = await import('crypto');
+    const signature = crypto.createHmac('sha256', secret).update(payloadToSign).digest('hex');
+
+    const isValid = await verifyWebhookSignature(
+      rawBody,
+      `t=${staleTimestamp},v1=${signature}`,
+      secret,
+      undefined,
+      300 // 5 minute max tolerance
+    );
+
+    expect(isValid).toBe(false);
   });
 
   it('should reject invalid HMAC signature', async () => {
@@ -71,5 +85,26 @@ describe('WebhooksService & HMAC Signature', () => {
     expect(event.is_dashboard_wrapper).toBe(true);
     expect(event.webhook_id).toBe(88);
     expect((event as any).collection.provider_transaction_id).toBe('MTN123456');
+  });
+
+  it('should constructEvent successfully with valid signature', async () => {
+    const client = new MarzPay({ webhookSecret: secret });
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const payloadToSign = `${timestamp}.${rawBody}`;
+
+    const crypto = await import('crypto');
+    const signature = crypto.createHmac('sha256', secret).update(payloadToSign).digest('hex');
+
+    const event = await client.webhooks.constructEvent(rawBody, `t=${timestamp},v1=${signature}`);
+
+    expect(event.event_type).toBe('collection.completed');
+  });
+
+  it('should throw Error in constructEvent with invalid signature', async () => {
+    const client = new MarzPay({ webhookSecret: secret });
+
+    await expect(client.webhooks.constructEvent(rawBody, 'v1=bad_signature')).rejects.toThrow(
+      'Invalid MarzPay webhook HMAC signature'
+    );
   });
 });
