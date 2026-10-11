@@ -35,7 +35,7 @@ describe('MarzPay Client', () => {
     const client = new MarzPay({
       apiKey: 'my_key',
       apiSecret: 'my_secret',
-      fetch: mockFetch as any,
+      fetch: mockFetch as unknown as typeof fetch,
     });
 
     await client.balance.get({ country: 'UG' });
@@ -57,7 +57,7 @@ describe('MarzPay Client', () => {
     const client = new MarzPay({
       apiKey: 'invalid',
       apiSecret: 'invalid',
-      fetch: mockFetch as any,
+      fetch: mockFetch as unknown as typeof fetch,
     });
 
     await expect(client.balance.get()).rejects.toThrow(MarzPayAuthenticationError);
@@ -77,7 +77,7 @@ describe('MarzPay Client', () => {
     const client = new MarzPay({
       apiKey: 'key',
       apiSecret: 'secret',
-      fetch: mockFetch as any,
+      fetch: mockFetch as unknown as typeof fetch,
     });
 
     try {
@@ -87,10 +87,11 @@ describe('MarzPay Client', () => {
         country: 'UG',
       });
       expect.fail('Should have thrown MarzPayValidationError');
-    } catch (err: any) {
+    } catch (err: unknown) {
       expect(err).toBeInstanceOf(MarzPayValidationError);
-      expect(err.statusCode).toBe(422);
-      expect(err.errors.amount).toContain('The amount field is required.');
+      const valErr = err as MarzPayValidationError;
+      expect(valErr.statusCode).toBe(422);
+      expect(valErr.errors?.amount).toContain('The amount field is required.');
     }
   });
 
@@ -112,7 +113,7 @@ describe('MarzPay Client', () => {
       apiKey: 'key',
       apiSecret: 'secret',
       logger: mockLogger,
-      fetch: mockFetch as any,
+      fetch: mockFetch as unknown as typeof fetch,
     });
 
     await client.balance.get();

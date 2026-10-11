@@ -28,7 +28,11 @@ describe('CollectionsService', () => {
       text: async () => JSON.stringify(mockResponseData),
     });
 
-    const client = new MarzPay({ apiKey: 'k', apiSecret: 's', fetch: mockFetch as any });
+    const client = new MarzPay({
+      apiKey: 'k',
+      apiSecret: 's',
+      fetch: mockFetch as unknown as typeof fetch,
+    });
 
     const response = await client.collections.create({
       amount: 5000,
@@ -73,7 +77,11 @@ describe('CollectionsService', () => {
       text: async () => JSON.stringify(mockResponseData),
     });
 
-    const client = new MarzPay({ apiKey: 'k', apiSecret: 's', fetch: mockFetch as any });
+    const client = new MarzPay({
+      apiKey: 'k',
+      apiSecret: 's',
+      fetch: mockFetch as unknown as typeof fetch,
+    });
 
     const response = await client.collections.create({
       amount: 5000,
@@ -83,7 +91,7 @@ describe('CollectionsService', () => {
     });
 
     expect(response.status).toBe('success');
-    expect((response.data as any).redirect_url).toBe(
+    expect((response.data as { redirect_url: string }).redirect_url).toBe(
       'https://wallet.wearemarz.com/pay/card-gateway?reference=b59d3d6d'
     );
   });
@@ -95,7 +103,11 @@ describe('CollectionsService', () => {
       text: async () => JSON.stringify({ status: 'success', data: {} }),
     });
 
-    const client = new MarzPay({ apiKey: 'k', apiSecret: 's', fetch: mockFetch as any });
+    const client = new MarzPay({
+      apiKey: 'k',
+      apiSecret: 's',
+      fetch: mockFetch as unknown as typeof fetch,
+    });
 
     await client.collections.create(
       {

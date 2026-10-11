@@ -38,16 +38,28 @@ export class DisbursementsService {
   /**
     List limits and available disbursement services per market.
    */
-  public async listServices(): Promise<APIResponseEnvelope<SendMoneyServicesData>> {
-    return this.http.request<SendMoneyServicesData>('GET', '/send-money/services');
+  public async listServices(
+    params?: { country?: string },
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<SendMoneyServicesData>> {
+    return this.http.request<SendMoneyServicesData>('GET', '/send-money/services', {
+      params: params?.country ? { country: params.country } : undefined,
+      headers: options?.headers,
+    });
   }
 
   /**
     Retrieve disbursement request status by UUID.
     
     @param uuid Transaction UUID returned from disbursement request
+    @param options Optional per-request options
    */
-  public async getStatus(uuid: string): Promise<APIResponseEnvelope<SendMoneyData>> {
-    return this.http.request<SendMoneyData>('GET', `/send-money/${uuid}`);
+  public async getStatus(
+    uuid: string,
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<SendMoneyData>> {
+    return this.http.request<SendMoneyData>('GET', `/send-money/${uuid}`, {
+      headers: options?.headers,
+    });
   }
 }

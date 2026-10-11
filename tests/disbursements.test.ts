@@ -29,7 +29,11 @@ describe('DisbursementsService', () => {
       text: async () => JSON.stringify(mockResponse),
     });
 
-    const client = new MarzPay({ apiKey: 'k', apiSecret: 's', fetch: mockFetch as any });
+    const client = new MarzPay({
+      apiKey: 'k',
+      apiSecret: 's',
+      fetch: mockFetch as unknown as typeof fetch,
+    });
 
     const res = await client.disbursements.send({
       amount: 10000,

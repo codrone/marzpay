@@ -1,7 +1,7 @@
 import { createServer, Server } from 'node:http';
 import { AddressInfo } from 'node:net';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { MarzPay, MarzPayAPIError, MarzPayRateLimitError } from '../src';
+import { MarzPay, MarzPayAPIError } from '../src';
 
 describe('End-to-End (E2E) HTTP Integration Tests', () => {
   let server: Server;
@@ -162,7 +162,7 @@ describe('End-to-End (E2E) HTTP Integration Tests', () => {
     const response = await client.transactions.get('rate-limit-test');
 
     expect(response.status).toBe('success');
-    expect((response.data as any).retried).toBe(true);
+    expect((response.data as { retried: boolean }).retried).toBe(true);
     expect(rateLimitAttempt).toBe(2);
   });
 
@@ -190,10 +190,11 @@ describe('End-to-End (E2E) HTTP Integration Tests', () => {
     try {
       await client.transactions.get('html-error');
       expect.fail('Should have thrown MarzPayAPIError');
-    } catch (err: any) {
+    } catch (err: unknown) {
       expect(err).toBeInstanceOf(MarzPayAPIError);
-      expect(err.statusCode).toBe(502);
-      expect(err.message).toContain('502 Bad Gateway Cloudflare Proxy Error');
+      const apiErr = err as MarzPayAPIError;
+      expect(apiErr.statusCode).toBe(502);
+      expect(apiErr.message).toContain('502 Bad Gateway Cloudflare Proxy Error');
     }
   });
 });

@@ -39,16 +39,28 @@ export class CollectionsService {
   /**
     List available collection services and providers by country.
    */
-  public async listServices(): Promise<APIResponseEnvelope<CollectionServicesData>> {
-    return this.http.request<CollectionServicesData>('GET', '/collect-money/services');
+  public async listServices(
+    params?: { country?: string },
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<CollectionServicesData>> {
+    return this.http.request<CollectionServicesData>('GET', '/collect-money/services', {
+      params: params?.country ? { country: params.country } : undefined,
+      headers: options?.headers,
+    });
   }
 
   /**
     Retrieve status and details of a collection request by UUID.
     
     @param uuid Transaction UUID returned during collection creation
+    @param options Optional per-request options
    */
-  public async getStatus(uuid: string): Promise<APIResponseEnvelope<GetCollectionStatusData>> {
-    return this.http.request<GetCollectionStatusData>('GET', `/collect-money/${uuid}`);
+  public async getStatus(
+    uuid: string,
+    options?: RequestOptions
+  ): Promise<APIResponseEnvelope<GetCollectionStatusData>> {
+    return this.http.request<GetCollectionStatusData>('GET', `/collect-money/${uuid}`, {
+      headers: options?.headers,
+    });
   }
 }

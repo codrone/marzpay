@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MarzPay, verifyWebhookSignature } from '../src';
+import { CollectionCompletedEvent, MarzPay, verifyWebhookSignature } from '../src';
 
 describe('WebhooksService & HMAC Signature', () => {
   const secret = 'whsec_test_secret_key_12345';
@@ -65,7 +65,9 @@ describe('WebhooksService & HMAC Signature', () => {
 
     expect(event.event_type).toBe('collection.completed');
     expect(event.is_dashboard_wrapper).toBe(false);
-    expect((event as any).collection.provider_transaction_id).toBe('MTN123456');
+    expect((event as CollectionCompletedEvent).collection.provider_transaction_id).toBe(
+      'MTN123456'
+    );
   });
 
   it('should parse dashboard-wrapped webhook payload correctly', () => {
@@ -84,7 +86,9 @@ describe('WebhooksService & HMAC Signature', () => {
     expect(event.event_type).toBe('collection.completed');
     expect(event.is_dashboard_wrapper).toBe(true);
     expect(event.webhook_id).toBe(88);
-    expect((event as any).collection.provider_transaction_id).toBe('MTN123456');
+    expect((event as CollectionCompletedEvent).collection.provider_transaction_id).toBe(
+      'MTN123456'
+    );
   });
 
   it('should constructEvent successfully with valid signature', async () => {

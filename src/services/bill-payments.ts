@@ -1,4 +1,5 @@
 import { HttpClient } from '../utils/http';
+import { sanitizePhoneNumber } from '../utils/phone';
 import {
   APIResponseEnvelope,
   PayBillData,
@@ -18,9 +19,9 @@ export class BillPaymentsService {
     @example
     ```typescript
     const verification = await marzpay.billPayments.verify({
-      account_number: '14234567890',
-      provider: 'nwsc',
-      country: 'UG'
+      utility_code: 'NWSC',
+      meter_number: '14234567890',
+      area: 'Kampala'
     });
     ```
    */
@@ -41,11 +42,12 @@ export class BillPaymentsService {
     @example
     ```typescript
     const payment = await marzpay.billPayments.pay({
-      account_number: '14234567890',
+      reference: 'ref-bill-001',
+      utility_code: 'NWSC',
+      meter_number: '14234567890',
+      phone_number: '+256777123456',
       amount: 20000,
-      provider: 'nwsc',
-      country: 'UG',
-      reference: 'ref-bill-001'
+      area: 'Kampala'
     }, { idempotencyKey: 'idemp-bill-001' });
     ```
    */
@@ -53,8 +55,14 @@ export class BillPaymentsService {
     params: PayBillParams,
     options?: RequestOptions
   ): Promise<APIResponseEnvelope<PayBillData>> {
+    const payload = {
+      ...params,
+      phone_number: params.phone_number
+        ? sanitizePhoneNumber(params.phone_number)
+        : params.phone_number,
+    };
     return this.http.request<PayBillData>('POST', '/bill-payment', {
-      body: params,
+      body: payload,
       headers: options?.headers,
       idempotencyKey: options?.idempotencyKey,
     });

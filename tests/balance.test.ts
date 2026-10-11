@@ -33,7 +33,11 @@ describe('BalanceService', () => {
       text: async () => JSON.stringify(mockBalanceResponse),
     });
 
-    const client = new MarzPay({ apiKey: 'key', apiSecret: 'secret', fetch: mockFetch as any });
+    const client = new MarzPay({
+      apiKey: 'key',
+      apiSecret: 'secret',
+      fetch: mockFetch as unknown as typeof fetch,
+    });
 
     const balanceRes = await client.balance.get({ country: 'UG' });
 
@@ -56,7 +60,11 @@ describe('BalanceService', () => {
         }),
     });
 
-    const client = new MarzPay({ apiKey: 'key', apiSecret: 'secret', fetch: mockFetch as any });
+    const client = new MarzPay({
+      apiKey: 'key',
+      apiSecret: 'secret',
+      fetch: mockFetch as unknown as typeof fetch,
+    });
 
     await client.balance.get({ country: 'CD', currency: 'USD' });
 

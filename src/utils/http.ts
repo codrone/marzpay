@@ -55,15 +55,19 @@ export class HttpClient {
   }
 
   /**
-    Build Basic Auth Header string
+    Build Basic Auth Header string with cross-platform UTF-8 support
    */
   private getAuthHeader(): string {
     const credentials = `${this.apiKey}:${this.apiSecret}`;
-    if (typeof btoa === 'function') {
-      return `Basic ${btoa(credentials)}`;
-    }
     if (typeof Buffer !== 'undefined') {
-      return `Basic ${Buffer.from(credentials).toString('base64')}`;
+      return `Basic ${Buffer.from(credentials, 'utf-8').toString('base64')}`;
+    }
+    if (typeof btoa === 'function') {
+      return `Basic ${btoa(
+        encodeURIComponent(credentials).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+          String.fromCharCode(parseInt(p1, 16))
+        )
+      )}`;
     }
     throw new Error('Unable to encode Basic authentication header in this environment');
   }
@@ -75,7 +79,10 @@ export class HttpClient {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     path: string,
     options: {
-      params?: Record<string, string | number | boolean | undefined>;
+      params?: Record<
+        string,
+        string | number | boolean | (string | number | boolean)[] | undefined
+      >;
       body?: unknown;
       headers?: Record<string, string>;
       idempotencyKey?: string;
@@ -87,7 +94,15 @@ export class HttpClient {
       const searchParams = new URLSearchParams();
       for (const [key, value] of Object.entries(options.params)) {
         if (value !== undefined && value !== null) {
-          searchParams.append(key, String(value));
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              if (item !== undefined && item !== null) {
+                searchParams.append(key, String(item));
+              }
+            }
+          } else {
+            searchParams.append(key, String(value));
+          }
         }
       }
       const queryString = searchParams.toString();
@@ -105,9 +120,14 @@ export class HttpClient {
     const headers: Record<string, string> = {
       Authorization: this.getAuthHeader(),
       Accept: 'application/json',
-      'Content-Type': 'application/json',
       ...options.headers,
     };
+
+    if (options.body !== undefined || method === 'POST' || method === 'PUT') {
+      if (!headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+      }
+    }
 
     if (idempotencyKey) {
       headers['Idempotency-Key'] = idempotencyKey;
@@ -154,10 +174,10 @@ export class HttpClient {
           );
         }
 
-        let parsedData: any = {};
+        let parsedData: Record<string, unknown> = {};
         if (responseText) {
           try {
-            parsedData = JSON.parse(responseText);
+            parsedData = JSON.parse(responseText) as Record<string, unknown>;
           } catch {
             // Strip HTML tags if Cloudflare/Nginx proxy returned an error page
             const cleanText = responseText
@@ -170,9 +190,11 @@ export class HttpClient {
 
         if (!response.ok) {
           const errorMessage =
-            parsedData?.message || parsedData?.error || `HTTP ${response.status} Error`;
+            (parsedData?.message as string) ||
+            (parsedData?.error as string) ||
+            `HTTP ${response.status} Error`;
 
-          // Parse Retry-After header if present
+          // Parse Retry-After header if present (supports seconds or HTTP-Date per RFC 7231)
           let retryAfter: number | undefined;
           const retryHeader = response.headers?.get
             ? response.headers.get('retry-after')
@@ -180,7 +202,12 @@ export class HttpClient {
           if (retryHeader) {
             const seconds = parseInt(retryHeader, 10);
             if (!isNaN(seconds)) {
-              retryAfter = seconds;
+              retryAfter = Math.max(0, seconds);
+            } else {
+              const dateMs = Date.parse(retryHeader);
+              if (!isNaN(dateMs)) {
+                retryAfter = Math.max(0, Math.ceil((dateMs - Date.now()) / 1000));
+              }
             }
           }
 
@@ -193,7 +220,10 @@ export class HttpClient {
             );
             if (attempt <= this.maxRetries) {
               lastError = error;
-              const backoffMs = retryAfter ? retryAfter * 1000 : Math.pow(2, attempt) * 500;
+              // Clamp retry-after to maximum 60 seconds to avoid hanging requests
+              const delaySec = retryAfter !== undefined ? Math.min(retryAfter, 60) : undefined;
+              const backoffMs =
+                delaySec !== undefined ? delaySec * 1000 : Math.pow(2, attempt) * 500;
               this.logger?.warn(
                 `[MarzPay] HTTP 429 Rate Limit. Retrying in ${backoffMs}ms... (attempt ${attempt}/${this.maxRetries})`
               );
@@ -210,8 +240,8 @@ export class HttpClient {
             lastError = new MarzPayAPIError(
               errorMessage,
               response.status,
-              parsedData?.error_code,
-              parsedData?.errors,
+              parsedData?.error_code as string | undefined,
+              parsedData?.errors as Record<string, string[]> | undefined,
               parsedData
             );
             const backoffMs = Math.pow(2, attempt) * 500;
@@ -232,7 +262,7 @@ export class HttpClient {
             throw new MarzPayValidationError(
               errorMessage,
               response.status,
-              parsedData?.errors,
+              parsedData?.errors as Record<string, string[]> | undefined,
               parsedData
             );
           }
@@ -240,8 +270,8 @@ export class HttpClient {
           throw new MarzPayAPIError(
             errorMessage,
             response.status,
-            parsedData?.error_code,
-            parsedData?.errors,
+            parsedData?.error_code as string | undefined,
+            parsedData?.errors as Record<string, string[]> | undefined,
             parsedData,
             retryAfter
           );
@@ -262,13 +292,14 @@ export class HttpClient {
           };
         }
 
-        return parsedData as APIResponseEnvelope<T>;
-      } catch (error: any) {
+        return parsedData as unknown as APIResponseEnvelope<T>;
+      } catch (error: unknown) {
         clearTimeout(timer);
         if (error instanceof MarzPayError) {
           throw error;
         }
-        if (error.name === 'AbortError') {
+        const isAbortError = error instanceof Error && error.name === 'AbortError';
+        if (isAbortError) {
           const timeoutErr = new MarzPayNetworkError(
             `MarzPay API request timed out after ${this.timeoutMs}ms`
           );
@@ -282,14 +313,15 @@ export class HttpClient {
           }
           throw timeoutErr;
         }
+        const errMessage = error instanceof Error ? error.message : String(error);
         const netErr = new MarzPayNetworkError(
-          error.message || 'Network error communicating with MarzPay',
-          error
+          errMessage || 'Network error communicating with MarzPay',
+          error instanceof Error ? error : undefined
         );
         if (attempt <= this.maxRetries) {
           lastError = netErr;
           this.logger?.warn(
-            `[MarzPay] Network error: ${error.message}. Retrying attempt ${attempt}/${this.maxRetries}...`
+            `[MarzPay] Network error: ${errMessage}. Retrying attempt ${attempt}/${this.maxRetries}...`
           );
           await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 500));
           continue;

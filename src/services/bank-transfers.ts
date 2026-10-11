@@ -19,8 +19,7 @@ export class BankTransfersService {
     ```typescript
     const account = await marzpay.bankTransfers.validate({
       account_number: '0123456789',
-      bank_code: 'EQTY',
-      country: 'UG'
+      bank_name: 'Equity Bank'
     });
     ```
    */
@@ -41,11 +40,11 @@ export class BankTransfersService {
     @example
     ```typescript
     const transfer = await marzpay.bankTransfers.create({
-      account_number: '0123456789',
-      bank_code: 'EQTY',
+      bank_account_number: '0123456789',
+      bank_account_name: 'John Doe',
+      bank_name: 'Equity Bank',
       amount: 150000,
-      country: 'UG',
-      reference: 'ref-bank-001'
+      description: 'Vendor payment'
     }, { idempotencyKey: 'idemp-bank-001' });
     ```
    */
@@ -64,9 +63,11 @@ export class BankTransfersService {
     Get list of supported commercial banks by country.
    */
   public async listBanks(
+    params?: { country?: string },
     options?: RequestOptions
   ): Promise<APIResponseEnvelope<SupportedBanksData>> {
     return this.http.request<SupportedBanksData>('GET', '/bank-transfer/banks', {
+      params: params?.country ? { country: params.country } : undefined,
       headers: options?.headers,
     });
   }

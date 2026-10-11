@@ -48,12 +48,10 @@ export class AirtimeService {
     @example
     ```typescript
     const topup = await marzpay.airtime.purchase({
-      phone_number: '+256777123456',
+      reference: 'ref-airtime-001',
+      purchase_type: 'airtime',
+      msisdn: '+256777123456',
       amount: 5000,
-      network: 'mtn',
-      type: 'airtime',
-      country: 'UG',
-      reference: 'ref-airtime-001'
     }, { idempotencyKey: 'idemp-airtime-001' });
     ```
    */

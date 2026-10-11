@@ -8,7 +8,7 @@
   @returns Boolean indicating signature validity
  */
 export async function verifyWebhookSignature(
-  rawBody: string,
+  rawBody: string | Uint8Array,
   signatureHeader: string | null | undefined,
   secret: string,
   timestampHeader?: string | null,
@@ -18,10 +18,18 @@ export async function verifyWebhookSignature(
     return false;
   }
 
+  const rawBodyStr =
+    typeof rawBody === 'string'
+      ? rawBody
+      : rawBody instanceof Uint8Array
+        ? new TextDecoder().decode(rawBody)
+        : '';
+
   let timestamp = timestampHeader || '';
-  let v1Hash = '';
+  const v1Hashes: string[] = [];
 
   // Parse header if in format "t=1700000000,v1=abcdef..."
+  // Supports multiple v1 signatures e.g. during secret rotation: "t=...,v1=...,v1=..."
   if (signatureHeader.includes('v1=')) {
     const parts = signatureHeader.split(',');
     for (const part of parts) {
@@ -29,33 +37,38 @@ export async function verifyWebhookSignature(
       if (key === 't' && value && !timestamp) {
         timestamp = value;
       } else if (key === 'v1' && value) {
-        v1Hash = value;
+        v1Hashes.push(value.trim());
       }
     }
   } else {
-    v1Hash = signatureHeader.trim();
+    v1Hashes.push(signatureHeader.trim());
   }
 
-  if (!v1Hash) {
+  if (v1Hashes.length === 0) {
     return false;
   }
 
   // Validate timestamp tolerance to prevent replay attacks
   if (timestamp && toleranceInSeconds > 0) {
-    const timestampSec = Number(timestamp);
-    if (!isNaN(timestampSec)) {
-      const nowSec = Math.floor(Date.now() / 1000);
-      if (Math.abs(nowSec - timestampSec) > toleranceInSeconds) {
-        return false;
-      }
+    let timestampSec = Number(timestamp);
+    if (isNaN(timestampSec)) {
+      return false;
+    }
+    // Auto-detect millisecond timestamp (13+ digits)
+    if (timestampSec > 1e11) {
+      timestampSec = Math.floor(timestampSec / 1000);
+    }
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (Math.abs(nowSec - timestampSec) > toleranceInSeconds) {
+      return false;
     }
   }
 
-  const payloadToSign = timestamp ? `${timestamp}.${rawBody}` : rawBody;
+  const payloadToSign = timestamp ? `${timestamp}.${rawBodyStr}` : rawBodyStr;
 
   try {
     const computedHash = await computeHmacSha256Hex(payloadToSign, secret);
-    return timingSafeEqual(computedHash.toLowerCase(), v1Hash.toLowerCase());
+    return v1Hashes.some((hash) => timingSafeEqual(computedHash.toLowerCase(), hash.toLowerCase()));
   } catch {
     return false;
   }
@@ -85,8 +98,7 @@ async function computeHmacSha256Hex(data: string, secret: string): Promise<strin
 
   // Node.js fallback if Web Crypto is unavailable
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const crypto = require('crypto');
+    const crypto = await import('crypto');
     return crypto.createHmac('sha256', secret).update(data).digest('hex');
   } catch {
     throw new Error('No crypto implementation available for HMAC calculation');
