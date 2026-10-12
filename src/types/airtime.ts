@@ -3,8 +3,8 @@ import { MoneyObject } from './common';
 export type AirtimePurchaseType = 'airtime' | 'bundle';
 
 export interface BuyAirtimeParams {
-  /** Unique reference (UUID) */
-  reference: string;
+  /** Unique reference (UUID). Auto-generated as a valid v4 UUID if omitted. */
+  reference?: string;
   /** Purchase type identifier: 'airtime' */
   purchase_type: 'airtime';
   /** Recipient MSISDN (e.g. "256771234567") */
@@ -14,8 +14,8 @@ export interface BuyAirtimeParams {
 }
 
 export interface BuyDataBundleParams {
-  /** Unique reference (UUID) */
-  reference: string;
+  /** Unique reference (UUID). Auto-generated as a valid v4 UUID if omitted. */
+  reference?: string;
   /** Purchase type identifier: 'bundle' */
   purchase_type: 'bundle';
   /** Recipient MSISDN (e.g. "256771234567") */

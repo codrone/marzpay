@@ -7,8 +7,8 @@ export interface CreateCollectionParams {
   amount: number;
   /** Phone number in E.164 format (e.g. +256712345678). Required for mobile_money. */
   phone_number?: string;
-  /** Unique UUID reference per collection request */
-  reference: string;
+  /** Unique UUID reference per collection request. Auto-generated as a valid v4 UUID if omitted. */
+  reference?: string;
   /** Market country code */
   country: CountryCode;
   /** Currency code (For DRC: CDF or USD) */

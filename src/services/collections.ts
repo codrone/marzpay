@@ -1,3 +1,4 @@
+import { generateUUID } from '../utils/crypto';
 import { HttpClient } from '../utils/http';
 import { sanitizePhoneNumber } from '../utils/phone';
 import {
@@ -15,7 +16,7 @@ export class CollectionsService {
   /**
     Initiate a mobile money or card collection request.
     
-    @param params Collection parameters including amount, reference UUID, and country
+    @param params Collection parameters including amount, optional reference UUID, and country
     @param options Optional per-request options (e.g. idempotencyKey, custom headers)
     @returns Initiated transaction details and processing info
    */
@@ -25,6 +26,7 @@ export class CollectionsService {
   ): Promise<APIResponseEnvelope<CreateCollectionData>> {
     const payload = {
       ...params,
+      reference: params.reference || generateUUID(),
       phone_number: params.phone_number
         ? sanitizePhoneNumber(params.phone_number)
         : params.phone_number,

@@ -33,8 +33,8 @@ export interface VerifyBillData {
 }
 
 export interface PayBillParams {
-  /** Unique reference (UUID) */
-  reference: string;
+  /** Unique reference (UUID). Auto-generated as a valid v4 UUID if omitted. */
+  reference?: string;
   /** Utility code: LIGHT, NWSC, DSTV, GOTV */
   utility_code: UtilityCode;
   /** Meter or SmartCard number */

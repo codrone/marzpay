@@ -105,6 +105,40 @@ describe('AirtimeService', () => {
     expect((init.headers as Record<string, string>)['Idempotency-Key']).toBe('idemp-airtime-123');
   });
 
+  it('should auto-generate valid v4 UUID reference when omitted in purchase()', async () => {
+    const mockResponse = {
+      status: 'success',
+      data: {
+        uuid: 'airtime-tx-001',
+        reference: 'auto-ref',
+        status: 'pending',
+        amount: { formatted: '5,000.00', raw: 5000, currency: 'UGX' },
+      },
+    };
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify(mockResponse),
+    });
+
+    const client = new MarzPay({
+      apiKey: 'k',
+      apiSecret: 's',
+      fetch: mockFetch as unknown as typeof fetch,
+    });
+    await client.airtime.purchase({
+      purchase_type: 'airtime',
+      msisdn: '+256777123456',
+      amount: 5000,
+    });
+
+    const init = mockFetch.mock.calls[0]?.[1] as RequestInit;
+    const body = JSON.parse(init.body as string);
+    const v4UuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    expect(body.reference).toMatch(v4UuidRegex);
+  });
+
   it('should fetch airtime status by reference', async () => {
     const mockResponse = {
       status: 'success',

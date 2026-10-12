@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateIdempotencyKey } from '../src/utils/crypto';
+import { generateIdempotencyKey, generateUUID } from '../src/utils/crypto';
 import { verifyWebhookSignature } from '../src';
 
 describe('Crypto & Webhook Verification Edge Cases', () => {
@@ -93,12 +93,23 @@ describe('Crypto & Webhook Verification Edge Cases', () => {
     expect(valid).toBe(true);
   });
 
-  it('should generate valid UUID or prefixed idempotency keys', () => {
+  const v4UuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  it('should generate valid RFC 4122 version 4 UUIDs', () => {
+    const uuid1 = generateUUID();
+    const uuid2 = generateUUID();
+
+    expect(uuid1).toMatch(v4UuidRegex);
+    expect(uuid2).toMatch(v4UuidRegex);
+    expect(uuid1).not.toBe(uuid2);
+  });
+
+  it('should generate valid RFC 4122 version 4 idempotency keys', () => {
     const key1 = generateIdempotencyKey();
     const key2 = generateIdempotencyKey();
 
-    expect(key1).toBeTruthy();
-    expect(key2).toBeTruthy();
+    expect(key1).toMatch(v4UuidRegex);
+    expect(key2).toMatch(v4UuidRegex);
     expect(key1).not.toBe(key2);
   });
 });

@@ -117,14 +117,42 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 /**
-  Generate a unique Idempotency-Key UUID string.
+ * Generate a compliant RFC 4122 version 4 UUID string.
+ *
+ * Uses `globalThis.crypto.randomUUID()` when available, with a zero-dependency
+ * cryptographically secure fallback (via `crypto.getRandomValues`) and bitwise RFC 4122 format fallback.
  */
-export function generateIdempotencyKey(): string {
+export function generateUUID(): string {
   if (
     typeof globalThis.crypto !== 'undefined' &&
     typeof globalThis.crypto.randomUUID === 'function'
   ) {
     return globalThis.crypto.randomUUID();
   }
-  return 'idemp_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+
+  if (
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.getRandomValues === 'function'
+  ) {
+    const bytes = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(bytes);
+    // RFC 4122 version 4 (0100) and variant (10xx)
+    bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x40;
+    bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80;
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+/**
+ * Generate a unique Idempotency-Key UUID string.
+ */
+export function generateIdempotencyKey(): string {
+  return generateUUID();
 }

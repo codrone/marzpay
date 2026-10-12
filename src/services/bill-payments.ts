@@ -1,3 +1,4 @@
+import { generateUUID } from '../utils/crypto';
 import { HttpClient } from '../utils/http';
 import { sanitizePhoneNumber } from '../utils/phone';
 import {
@@ -57,6 +58,7 @@ export class BillPaymentsService {
   ): Promise<APIResponseEnvelope<PayBillData>> {
     const payload = {
       ...params,
+      reference: params.reference || generateUUID(),
       phone_number: params.phone_number
         ? sanitizePhoneNumber(params.phone_number)
         : params.phone_number,

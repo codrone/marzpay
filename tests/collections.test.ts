@@ -123,4 +123,29 @@ describe('CollectionsService', () => {
     const headers = init.headers as Record<string, string>;
     expect(headers['Idempotency-Key']).toBe('custom_idempotency_key_xyz');
   });
+
+  it('should auto-generate valid v4 UUID reference when omitted', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      text: async () => JSON.stringify({ status: 'success', data: {} }),
+    });
+
+    const client = new MarzPay({
+      apiKey: 'k',
+      apiSecret: 's',
+      fetch: mockFetch as unknown as typeof fetch,
+    });
+
+    await client.collections.create({
+      amount: 5000,
+      phone_number: '0777123456',
+      country: 'UG',
+    });
+
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    const v4UuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    expect(body.reference).toMatch(v4UuidRegex);
+  });
 });

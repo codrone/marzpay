@@ -191,4 +191,42 @@ describe('BillPaymentsService', () => {
     const statusRes = await client.billPayments.getStatus('ref-001');
     expect(statusRes.data.transaction.status).toBe('completed');
   });
+
+  it('should auto-generate valid v4 UUID reference when omitted in pay()', async () => {
+    const mockResponse = {
+      status: 'success',
+      data: {
+        transaction: { uuid: 'tx-001', reference: 'auto-ref', status: 'pending' },
+        bill_payment: {
+          utility_code: 'LIGHT',
+          meter_number: '0101',
+          amount: { formatted: '10,000.00', raw: 10000, currency: 'UGX' },
+        },
+      },
+    };
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify(mockResponse),
+    });
+
+    const client = new MarzPay({
+      apiKey: 'k',
+      apiSecret: 's',
+      fetch: mockFetch as unknown as typeof fetch,
+    });
+
+    await client.billPayments.pay({
+      utility_code: 'LIGHT',
+      meter_number: '0101',
+      phone_number: '+256777123456',
+      amount: 10000,
+    });
+
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    const v4UuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    expect(body.reference).toMatch(v4UuidRegex);
+  });
 });

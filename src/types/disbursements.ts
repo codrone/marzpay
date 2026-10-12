@@ -5,8 +5,8 @@ export interface SendMoneyParams {
   amount: number;
   /** Recipient phone number in E.164 format (e.g. +256712345678) */
   phone_number: string;
-  /** Unique merchant payout reference (max 50 chars) */
-  reference: string;
+  /** Unique merchant payout reference (max 50 chars). Auto-generated as a valid v4 UUID if omitted. */
+  reference?: string;
   /** Target market country code */
   country: CountryCode;
   /** Currency code (For DRC: CDF default or USD) */

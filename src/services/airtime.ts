@@ -1,3 +1,4 @@
+import { generateUUID } from '../utils/crypto';
 import { HttpClient } from '../utils/http';
 import { sanitizePhoneNumber } from '../utils/phone';
 import {
@@ -61,6 +62,7 @@ export class AirtimeService {
   ): Promise<APIResponseEnvelope<AirtimePurchaseData>> {
     const payload = {
       ...params,
+      reference: params.reference || generateUUID(),
       msisdn: params.msisdn ? sanitizePhoneNumber(params.msisdn) : params.msisdn,
     };
     return this.http.request<AirtimePurchaseData>('POST', '/airtime-data', {
