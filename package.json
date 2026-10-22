@@ -88,7 +88,7 @@
     "lint-staged": "^15.4.3",
     "prettier": "^3.5.3",
     "publint": "^0.3.9",
-    "tsup": "^8.4.0",
+    "tsup": "^9.0.0",
     "typedoc": "^0.28.1",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.0",
